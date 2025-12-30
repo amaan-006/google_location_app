@@ -29,7 +29,8 @@ class _GoogleMapsScreenState extends State<GoogleMapsScreen> {
 
   LatLng? _currentLatLng;
 
-  static const String _webApiKey = "AIzaSyD6Nb4DBrQ1FywomyMTGnNMKUm4G6Fxm_A";
+  // static const String _webApiKey = "AIzaSyD6Nb4DBrQ1FywomyMTGnNMKUm4G6Fxm_A";
+
 
   @override
   void initState() {
@@ -143,79 +144,92 @@ class _GoogleMapsScreenState extends State<GoogleMapsScreen> {
 }
 
 
-  List<LatLng> _decodePolyline(String encoded) {
-    List<LatLng> poly = [];
-    int index = 0, lat = 0, lng = 0;
+  // List<LatLng> _decodePolyline(String encoded) {
+  //   List<LatLng> poly = [];
+  //   int index = 0, lat = 0, lng = 0;
 
-    while (index < encoded.length) {
-      int b, shift = 0, result = 0;
-      do {
-        b = encoded.codeUnitAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      lat += (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
+  //   while (index < encoded.length) {
+  //     int b, shift = 0, result = 0;
+  //     do {
+  //       b = encoded.codeUnitAt(index++) - 63;
+  //       result |= (b & 0x1f) << shift;
+  //       shift += 5;
+  //     } while (b >= 0x20);
+  //     lat += (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
 
-      shift = 0;
-      result = 0;
-      do {
-        b = encoded.codeUnitAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      lng += (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
+  //     shift = 0;
+  //     result = 0;
+  //     do {
+  //       b = encoded.codeUnitAt(index++) - 63;
+  //       result |= (b & 0x1f) << shift;
+  //       shift += 5;
+  //     } while (b >= 0x20);
+  //     lng += (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
 
-      poly.add(LatLng(lat / 1E5, lng / 1E5));
-    }
-    return poly;
-  }
+  //     poly.add(LatLng(lat / 1E5, lng / 1E5));
+  //   }
+  //   return poly;
+  // }
 
   Future<void> _drawRoute(
-    CustomMarkerModel start,
-    CustomMarkerModel end,
-  ) async {
-    debugPrint(
-      "Route from ${start.Lat},${start.Lng} "
-      "to end ${end.Lat} , ${end.Lng}",
-    );
+  CustomMarkerModel start,
+  CustomMarkerModel end,
+) async {
+  debugPrint(
+    "OSRM Route from ${start.Lat},${start.Lng} "
+    "to ${end.Lat},${end.Lng}",
+  );
 
-    final url = Uri.parse(
-      "https://maps.googleapis.com/maps/api/directions/json"
-      "?origin=${start.Lat},${start.Lng}"
-      "&destination=${end.Lat},${end.Lng}"
-      "&mode=driving"
-      "&key=$_webApiKey",
-    );
+  final url = Uri.parse(
+    "https://router.project-osrm.org/route/v1/driving/"
+    "${start.Lng},${start.Lat};${end.Lng},${end.Lat}"
+    "?overview=full&geometries=geojson",
+  );
 
-    final res = await http.get(url);
-    final data = jsonDecode(res.body);
+  final res = await http.get(url);
 
-    if (data['status'] != "OK" ||
-        data['routes'] == null ||
-        data['routes'].isEmpty) {
-      debugPrint("Route error :${data['status']}");
-      debugPrint("Full response : ${res.body}");
-      return;
-    }
-    final encoded = data['routes'][0]['overview_polyline']['points'];
-    final points = _decodePolyline(encoded);
-
-    setState(() {
-      _polylines.clear();
-      _polylines.add(
-        Polyline(
-          polylineId: const PolylineId("route"),
-          color: Colors.blue,
-          width: 6,
-          points: points,
-        ),
-      );
-    });
-
-    _controller?.animateCamera(
-      CameraUpdate.newLatLngBounds(_bounds(points), 60),
-    );
+  if (res.statusCode != 200) {
+    debugPrint("OSRM HTTP error: ${res.statusCode}");
+    return;
   }
+
+  final data = jsonDecode(res.body);
+
+  if (data['routes'] == null || data['routes'].isEmpty) {
+    debugPrint("OSRM route not found");
+    return;
+  }
+
+  final coordinates =
+      data['routes'][0]['geometry']['coordinates'] as List;
+
+  final points = coordinates
+      .map(
+        (c) => LatLng(
+          c[1].toDouble(), 
+          c[0].toDouble(), 
+        ),
+      )
+      .toList();
+
+  setState(() {
+    _polylines.clear();
+    _polylines.add(
+      Polyline(
+      polylineId: const PolylineId("route"),
+        color: Colors.blue,
+        width: 6,
+        points: points,
+      ),
+    );
+  });
+
+  _controller?.animateCamera(
+    CameraUpdate.newLatLngBounds(_bounds(points), 60),
+  );
+
+
+}
 
   LatLngBounds _bounds(List<LatLng> list) {
     double minLat = list.first.latitude;
