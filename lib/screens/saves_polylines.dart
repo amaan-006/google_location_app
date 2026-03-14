@@ -3,7 +3,7 @@ import 'package:google_location/models/saves_polyline_model.dart';
 import 'google_maps_scree.dart';
 import '../models/custom_marker_model.dart';
 
-class SavedPolylinesPage extends StatelessWidget {
+class SavedPolylinesPage extends StatefulWidget {
   final List<SavedRouteModel> savedRoutes;
   final Function(CustomMarkerModel) onMarkerAdded;
 
@@ -14,15 +14,26 @@ class SavedPolylinesPage extends StatelessWidget {
   });
 
   @override
+  State<SavedPolylinesPage> createState() => _SavedPolylinesPageState();
+}
+
+class _SavedPolylinesPageState extends State<SavedPolylinesPage> {
+  void deleteRoute(SavedRouteModel route) {
+    setState(() {
+      widget.savedRoutes.remove(route);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Saved Polylines")),
-      body: savedRoutes.isEmpty
+      body: widget.savedRoutes.isEmpty
           ? const Center(child: Text("No saved routes"))
           : ListView.builder(
-              itemCount: savedRoutes.length,
+              itemCount: widget.savedRoutes.length,
               itemBuilder: (context, index) {
-                final route = savedRoutes[index];
+                final route = widget.savedRoutes[index];
 
                 return ListTile(
                   leading: const Icon(Icons.alt_route),
@@ -36,15 +47,18 @@ class SavedPolylinesPage extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (_) => GoogleMapsScreen(
-                          markersForPolyline: [
-                            route.start,
-                            route.end,
-                          ],
-                          onMarkerAdded: onMarkerAdded,
+                          markersForPolyline: [route.start, route.end],
+                          onMarkerAdded: widget.onMarkerAdded,
                         ),
                       ),
                     );
                   },
+                  trailing: IconButton(
+                    onPressed: () {
+                      deleteRoute(route);
+                    },
+                    icon: Icon(Icons.delete, color: Colors.red),
+                  ),
                 );
               },
             ),

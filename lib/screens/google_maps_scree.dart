@@ -29,7 +29,6 @@ class _GoogleMapsScreenState extends State<GoogleMapsScreen> {
 
   LatLng? _currentLatLng;
 
-  // static const String _webApiKey = "AIzaSyD6Nb4DBrQ1FywomyMTGnNMKUm4G6Fxm_A";
 
 
   @override
@@ -94,7 +93,6 @@ class _GoogleMapsScreenState extends State<GoogleMapsScreen> {
     if (widget.initialMarker == null) return;
     final m = widget.initialMarker!;
     setState(() {
-      print("Marker Added");
       _markers.add(
         Marker(
           markerId: MarkerId("initial_${m.Lat}_${m.Lng}"),
@@ -143,33 +141,6 @@ class _GoogleMapsScreenState extends State<GoogleMapsScreen> {
   widget.onMarkerAdded(marker);
 }
 
-
-  // List<LatLng> _decodePolyline(String encoded) {
-  //   List<LatLng> poly = [];
-  //   int index = 0, lat = 0, lng = 0;
-
-  //   while (index < encoded.length) {
-  //     int b, shift = 0, result = 0;
-  //     do {
-  //       b = encoded.codeUnitAt(index++) - 63;
-  //       result |= (b & 0x1f) << shift;
-  //       shift += 5;
-  //     } while (b >= 0x20);
-  //     lat += (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
-
-  //     shift = 0;
-  //     result = 0;
-  //     do {
-  //       b = encoded.codeUnitAt(index++) - 63;
-  //       result |= (b & 0x1f) << shift;
-  //       shift += 5;
-  //     } while (b >= 0x20);
-  //     lng += (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
-
-  //     poly.add(LatLng(lat / 1E5, lng / 1E5));
-  //   }
-  //   return poly;
-  // }
 
   Future<void> _drawRoute(
   CustomMarkerModel start,

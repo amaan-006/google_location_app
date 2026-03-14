@@ -33,6 +33,7 @@ class _HomePageState extends State<HomePage> {
   final List<CustomMarkerModel> markerList = [];
   final List<CustomMarkerModel> selectedList = [];
   final List<SavedRouteModel> savedRoutes = [];
+  bool selectionMode = false;
 
   void addMarker(CustomMarkerModel marker) {
     setState(() {
@@ -56,6 +57,13 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void deleteMarker(CustomMarkerModel marker) {
+    setState(() {
+      markerList.remove(marker);
+      selectedList.remove(marker);
+    });
+  }
+
   void openPolylineMap() {
     if (selectedList.length != 2) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -63,7 +71,6 @@ class _HomePageState extends State<HomePage> {
       );
       return;
     }
-    // final routeMarkers = List<CustomMarkerModel>.from(selectedList);
 
     final start = selectedList[0];
     final end = selectedList[1];
@@ -162,18 +169,37 @@ class _HomePageState extends State<HomePage> {
                       itemBuilder: (context, index) {
                         final m = markerList[index];
                         return ListTile(
-                          leading: Checkbox(
-                            value: m.selected,
-                            onChanged: (val) => onMarkerSelect(m, val ?? false),
-                          ),
+                          leading: selectionMode
+                              ? Checkbox(
+                                  value: m.selected,
+                                  onChanged: (val) =>
+                                      onMarkerSelect(m, val ?? false),
+                                )
+                              : const Icon(
+                                  Icons.location_on_outlined,
+                                  color: Colors.red,
+                                ),
                           title: Text(m.name),
                           subtitle: Text("Lat: ${m.Lat}, Lng: ${m.Lng}"),
+                          onLongPress: () {
+                            setState(() {
+                              selectionMode = true;
+                            });
+                          },
+                          trailing: IconButton(
+                            onPressed: () {
+                              deleteMarker(m);
+                            },
+                            icon: Icon(Icons.delete, color: Colors.orange),
+                          ),
                         );
                       },
                     ),
             ),
-
-            CustomButton(title: "Create Polyline", onPressed: openPolylineMap),
+             
+             selectedList.isNotEmpty
+            ? CustomButton(title: "Create Polyline", onPressed: openPolylineMap)
+            : SizedBox(),
           ],
         ),
       ),
