@@ -29,7 +29,6 @@ class _GoogleMapsScreenState extends State<GoogleMapsScreen> {
 
   LatLng? _currentLatLng;
 
-  // static const String _webApiKey = "AIzaSyD6Nb4DBrQ1FywomyMTGnNMKUm4G6Fxm_A";
 
 
   @override
